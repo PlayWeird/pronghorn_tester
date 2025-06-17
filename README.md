@@ -86,24 +86,33 @@ ssh pronghorn
 
 ## Running Jobs on Pronghorn
 
-### 1. Quick Test Job (15-minute limit)
+⚠️ **CRITICAL**: Always specify account and partition explicitly on the command line. Using only `#SBATCH` directives in scripts will fail.
+
+### 1. Quick Test Job (15-minute limit) - TESTED ✅
 Perfect for testing your setup and debugging:
 ```bash
-# Submit a quick test job
+# CORRECT: Submit with explicit account/partition (TESTED - WORKS)
+sbatch --account=cpu-s6-test-0 --partition=cpu-s6-test-0 jobs/test/quick_test.sh
+
+# WRONG: This will fail with "Invalid account or account/partition combination"
 sbatch jobs/test/quick_test.sh
 
 # Check job status
 squeue -u gevangelista
 
-# View output (replace JOBID with your actual job ID)
-cat logs/slurm/test_JOBID.out
+# Find output files (they may be in submission directory)
+find ~ -name "*JOBID*" -type f 2>/dev/null
+ls -la slurm-*.out
+
+# View output
+cat slurm-JOBID.out
 ```
 
-### 2. Standard CPU Job
+### 2. Standard CPU Job - TESTED ✅
 For regular computational work (up to 8 hours):
 ```bash
-# Submit CPU job
-sbatch jobs/cpu/simple_cpu.sh
+# CORRECT: Submit CPU job with explicit account/partition
+sbatch --account=cpu-s3-sponsored-0 --partition=cpu-s3-sponsored-0 jobs/cpu/simple_cpu.sh
 
 # Monitor job
 squeue -u gevangelista
@@ -112,33 +121,47 @@ squeue -u gevangelista
 scancel JOBID
 ```
 
-### 3. Interactive Session
+### 3. Interactive Session - TESTED ✅
 For development and testing:
 ```bash
 # Request 15-minute interactive session on test partition
 salloc --account=cpu-s6-test-0 --partition=cpu-s6-test-0 --time=00:15:00
 
 # Once allocated, you'll be on a compute node
-# Run your commands here
-python3 my_script.py
+# Run your commands here (note: use 'python' not 'python3')
+python my_script.py
 
 # Exit when done
 exit
 ```
 
-## Using Containers
+## Using Containers - TESTED ✅
 
-### Building a Singularity Container
+### Singularity Containers (Fully Functional)
+Tested on June 17, 2025 - Singularity 3.6.1 works on both login and compute nodes.
+
+```bash
+# Pull container from Docker Hub (TESTED - WORKS)
+singularity pull docker://python:3.9-slim
+
+# Test container locally
+singularity exec python_3.9-slim.sif python --version
+
+# Use in SLURM job (TESTED - WORKS)
+sbatch --account=cpu-s6-test-0 --partition=cpu-s6-test-0 container_job.sh
+```
+
+### Building Custom Containers
 ```bash
 # On Pronghorn (or local machine with Singularity)
 cd containers/definitions
 singularity build ../python.sif python.def
 ```
 
-### Running Container Jobs
+### Container Job Example
 ```bash
-# In your job script, use:
-singularity run containers/python.sif my_script.py
+# In your job script:
+singularity exec python_3.9-slim.sif python my_script.py
 ```
 
 ## Storage Management
@@ -239,21 +262,42 @@ sacct -u gevangelista --starttime=2024-01-01
 3. **"Host not found"**: Check network connectivity
 
 ### Job Issues
-1. **Job pending too long**: Check partition limits and availability
-2. **Job failed immediately**: Check SLURM error files in `logs/slurm/`
-3. **Out of memory**: Increase memory request in job script
+1. **"Invalid account or account/partition combination"**: ALWAYS use explicit `--account` and `--partition` flags
+2. **Job pending too long**: Check partition limits and availability
+3. **Job failed immediately**: Check SLURM error files with `find ~ -name "*JOBID*"`
+4. **Output files not found**: Look in submission directory, not logs/slurm/ 
+5. **Out of memory**: Increase memory request in job script
 
 ### Storage Issues
 1. **Quota exceeded**: Run `make check-quota` and clean up files
 2. **Permission denied**: Check file ownership and permissions
 
+## Validation Results (June 17, 2025)
+
+✅ **Successfully Tested and Working**:
+- SSH connection from campus
+- SLURM job submission on both partitions:
+  - `cpu-s3-sponsored-0` (8-hour limit, nodes cpu-64+)
+  - `cpu-s6-test-0` (15-minute limit, nodes cpu-65+)  
+- Singularity containers (version 3.6.1)
+- Bidirectional data transfer via scp
+- Storage quota checking
+- Job monitoring and output retrieval
+
+⚠️ **Important Findings**:
+- Must use explicit `--account` and `--partition` flags for job submission
+- Output files created in submission directory, not logs/slurm/
+- Use `python` command, not `python3`
+- Both partitions require explicit specification to work
+
 ## Best Practices
 
-1. **Always use the test partition** (`cpu-s6-test-0`) for debugging
-2. **Monitor your quota** regularly to avoid job failures
-3. **Use containers** for complex software dependencies
-4. **Save important data** outside your home directory (not backed up!)
-5. **Clean up** after jobs complete to save space
+1. **Always specify account/partition** explicitly: `--account=X --partition=X`
+2. **Use the test partition** (`cpu-s6-test-0`) for debugging (15-minute limit)
+3. **Monitor your quota** regularly to avoid job failures
+4. **Use containers** for complex software dependencies
+5. **Save important data** outside your home directory (not backed up!)
+6. **Clean up** after jobs complete to save space
 
 ## Support
 

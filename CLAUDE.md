@@ -49,27 +49,51 @@ This repository is designed for testing connections and capabilities of Pronghor
 3. Be mindful of job limits and runtime restrictions
 4. Data in home directory is NOT backed up
 
+### Critical Job Submission Rules (TESTED)
+⚠️ **IMPORTANT**: Job submission requires explicit account/partition specification:
+- ✅ **WORKING**: `sbatch --account=cpu-s3-sponsored-0 --partition=cpu-s3-sponsored-0 script.sh`
+- ✅ **WORKING**: `sbatch --account=cpu-s6-test-0 --partition=cpu-s6-test-0 script.sh`
+- ❌ **FAILS**: Using only `#SBATCH` directives in script without command-line flags
+- ❌ **FAILS**: `sbatch script.sh` (without explicit account/partition)
+
+### Tested System Capabilities
+1. **Both Partitions Functional** (June 17, 2025):
+   - `cpu-s3-sponsored-0`: Runs on nodes cpu-64+ (8-hour limit)
+   - `cpu-s6-test-0`: Runs on nodes cpu-65+ (15-minute limit)
+2. **Singularity Containers**: Fully functional on compute nodes (version 3.6.1)
+3. **Python**: Use `python` (not `python3`) or load via modules
+4. **Data Transfer**: scp works bidirectionally
+
 ### Best Practices
 1. Use the test partition (`cpu-s6-test-0`) for debugging scripts (15-minute limit)
-2. Containerize complex software dependencies using Singularity
-3. Include proper error handling for queue wait times and resource availability
-4. Always check quota before large data operations
+2. Always specify account/partition on command line, not just in script
+3. Containerize complex software dependencies using Singularity
+4. Include proper error handling for queue wait times and resource availability
+5. Always check quota before large data operations
 
 ## Common Commands
 
 ### Job Management
 ```bash
-# Submit a job
+# Submit a job (TESTED - WORKING FORMAT)
 sbatch --account=cpu-s3-sponsored-0 --partition=cpu-s3-sponsored-0 script.sh
+sbatch --account=cpu-s6-test-0 --partition=cpu-s6-test-0 script.sh
 
 # Check job status
 squeue -u gevangelista
+
+# Check job history and details
+sacct -j <job_id> --format=JobID,JobName,State,ExitCode,Submit,Start,End
+scontrol show job <job_id>
 
 # Cancel a job
 scancel <job_id>
 
 # Interactive session (for testing)
 salloc --account=cpu-s6-test-0 --partition=cpu-s6-test-0 --time=00:15:00
+
+# Find job output files
+find ~ -name "*<job_id>*" -type f 2>/dev/null
 ```
 
 ### Storage Management
@@ -79,6 +103,28 @@ mmlsquota -j home.gevangelista --block-size 1G pronghorn-0
 
 # Check disk usage
 du -sh /data/gpfs/home/gevangelista
+```
+
+### Container Management (TESTED)
+```bash
+# Pull container from Docker Hub
+singularity pull docker://python:3.9-slim
+
+# Run container interactively
+singularity exec python_3.9-slim.sif python --version
+
+# Run container in SLURM job
+singularity exec python_3.9-slim.sif python script.py
+```
+
+### Account Management
+```bash
+# Check your account associations (full names)
+sacctmgr list associations user=gevangelista format=account%20,partition%20 --parsable2
+
+# Check available partitions
+scontrol show partition | grep -A5 "PartitionName=cpu"
+sinfo
 ```
 
 ## Project-Specific Notes
