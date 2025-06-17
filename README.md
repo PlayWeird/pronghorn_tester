@@ -24,11 +24,17 @@ Before using this repository, you need to customize it for your account:
    ```bash
    # Replace YOUR_NETID with your actual NetID throughout the repository
    # For example, if your NetID is "jsmith":
+   
+   # sed: find "YOUR_NETID" and replace with "jsmith" in SSH config
    sed -i 's/YOUR_NETID/jsmith/g' .ssh/config
+   
+   # find: locate all .sh files and run sed on each one
    find scripts/ -name "*.sh" -exec sed -i 's/YOUR_NETID/jsmith/g' {} \;
+   
+   # Update container definitions too
    find containers/ -name "*.def" -exec sed -i 's/YOUR_NETID/jsmith/g' {} \;
    
-   # Alternative: Set environment variable and scripts will use it automatically
+   # Alternative: Set environment variable (scripts will use this automatically)
    export PRONGHORN_USER=jsmith
    ```
 
@@ -39,7 +45,10 @@ Before using this repository, you need to customize it for your account:
 
 4. **Check your account associations** (on Pronghorn):
    ```bash
+   # ssh: connect to Pronghorn cluster
    ssh YOUR_NETID@pronghorn.rc.unr.edu
+   
+   # sacctmgr: show which accounts/partitions you can use
    sacctmgr show associations user=YOUR_NETID format=account,partition,qos
    ```
 
@@ -124,6 +133,7 @@ ssh pronghorn
 
 ⚠️ **ACCOUNT SETUP**: The examples below use `cpu-s6-test-0` and `cpu-s3-sponsored-0` partitions. Check your actual account associations with:
 ```bash
+# sacctmgr: list your available accounts and partitions
 sacctmgr show associations user=YOUR_NETID format=account,partition,qos
 ```
 Replace the account/partition names in examples with your actual available accounts.
@@ -131,47 +141,49 @@ Replace the account/partition names in examples with your actual available accou
 ### 1. Quick Test Job (15-minute limit) - TESTED ✅
 Perfect for testing your setup and debugging:
 ```bash
-# CORRECT: Submit with explicit account/partition (TESTED - WORKS)
+# CORRECT: sbatch with explicit account/partition (TESTED - WORKS)
 sbatch --account=cpu-s6-test-0 --partition=cpu-s6-test-0 jobs/test/quick_test.sh
 
 # WRONG: This will fail with "Invalid account or account/partition combination"
 sbatch jobs/test/quick_test.sh
 
-# Check job status (replace YOUR_NETID with your NetID)
+# squeue: check status of your submitted jobs
 squeue -u YOUR_NETID
 
-# Find output files (they may be in submission directory)
+# find: locate job output files (they may be in submission directory)
 find ~ -name "*JOBID*" -type f 2>/dev/null
+
+# ls: list SLURM output files in current directory
 ls -la slurm-*.out
 
-# View output (replace JOBID with actual job number)
+# cat: view the job output (replace JOBID with actual job number)
 cat slurm-JOBID.out
 ```
 
 ### 2. Standard CPU Job - TESTED ✅
 For regular computational work (up to 8 hours):
 ```bash
-# CORRECT: Submit CPU job with explicit account/partition
+# sbatch: submit CPU job with explicit account/partition
 sbatch --account=cpu-s3-sponsored-0 --partition=cpu-s3-sponsored-0 jobs/cpu/simple_cpu.sh
 
-# Monitor job
+# squeue: monitor job status
 squeue -u YOUR_NETID
 
-# Cancel if needed
+# scancel: cancel a job if needed (replace JOBID with actual job number)
 scancel JOBID
 ```
 
 ### 3. Interactive Session - TESTED ✅
 For development and testing:
 ```bash
-# Request 15-minute interactive session on test partition
+# salloc: request 15-minute interactive session on test partition
 salloc --account=cpu-s6-test-0 --partition=cpu-s6-test-0 --time=00:15:00
 
 # Once allocated, you'll be on a compute node
-# Run your commands here (note: use 'python' not 'python3')
+# python: run your scripts (note: use 'python' not 'python3')
 python my_script.py
 
-# Exit when done
+# exit: leave the interactive session when done
 exit
 ```
 
@@ -181,26 +193,28 @@ exit
 Tested on June 17, 2025 - Singularity 3.6.1 works on both login and compute nodes.
 
 ```bash
-# Pull container from Docker Hub (TESTED - WORKS)
+# singularity pull: download container from Docker Hub (TESTED - WORKS)
 singularity pull docker://python:3.9-slim
 
-# Test container locally
+# singularity exec: run command inside container
 singularity exec python_3.9-slim.sif python --version
 
-# Use in SLURM job (TESTED - WORKS)
+# sbatch: submit containerized job to SLURM (TESTED - WORKS)
 sbatch --account=cpu-s6-test-0 --partition=cpu-s6-test-0 container_job.sh
 ```
 
 ### Building Custom Containers
 ```bash
-# On Pronghorn (or local machine with Singularity)
+# cd: navigate to container definitions directory
 cd containers/definitions
+
+# singularity build: create container from definition file
 singularity build ../python.sif python.def
 ```
 
 ### Container Job Example
 ```bash
-# In your job script:
+# singularity exec: run your script inside the container
 singularity exec python_3.9-slim.sif python my_script.py
 ```
 
@@ -208,10 +222,10 @@ singularity exec python_3.9-slim.sif python my_script.py
 
 ### Check Your Quota
 ```bash
-# Using the utility script
+# make: run the automated quota check script
 make check-quota
 
-# Or directly on Pronghorn (replace YOUR_NETID)
+# mmlsquota: directly check quota on Pronghorn (replace YOUR_NETID)
 mmlsquota -j home.YOUR_NETID --block-size 1G pronghorn-0
 ```
 
@@ -224,31 +238,32 @@ mmlsquota -j home.YOUR_NETID --block-size 1G pronghorn-0
 
 ### 1. Testing New Code
 ```bash
-# 1. Edit your code locally
+# vim: edit your code locally
 vim my_analysis.py
 
-# 2. Copy to Pronghorn
+# scp: copy file to Pronghorn (using SSH config alias)
 scp my_analysis.py pronghorn:~/
 
-# 3. Submit test job
+# ssh: connect to Pronghorn and submit test job
 ssh pronghorn
 sbatch --account=cpu-s6-test-0 --partition=cpu-s6-test-0 jobs/test/quick_test.sh
 ```
 
 ### 2. Running a Python Analysis
 ```bash
-# 1. Prepare your data
+# cp: prepare your data
 cp mydata.csv data/input/
 
-# 2. Modify the job script
+# vim: modify the job script to run your Python script
 vim jobs/cpu/simple_cpu.sh
-# Update to run your Python script
 
-# 3. Submit the job (remember explicit account/partition)
+# sbatch: submit the job (remember explicit account/partition)
 sbatch --account=cpu-s3-sponsored-0 --partition=cpu-s3-sponsored-0 jobs/cpu/simple_cpu.sh
 
-# 4. Check results (output files will be in submission directory)
+# ls: check results in output directory
 ls data/output/
+
+# find: locate recent SLURM output files
 find ~ -name "slurm-*.out" | tail -5
 ```
 
@@ -272,25 +287,25 @@ make clean            # Clean output and log files
 ## SLURM Cheat Sheet
 
 ```bash
-# Submit job (remember to use explicit account/partition flags)
+# sbatch: submit job (remember to use explicit account/partition flags)
 sbatch --account=ACCOUNT --partition=PARTITION script.sh
 
-# Check queue
+# squeue: check current job queue
 squeue -u YOUR_NETID
 
-# Check all your jobs
+# squeue: check all your jobs (including completed)
 squeue -u YOUR_NETID -t all
 
-# Cancel job
+# scancel: cancel a specific job
 scancel JOBID
 
-# Cancel all your jobs
+# scancel: cancel all your jobs
 scancel -u YOUR_NETID
 
-# View account info
+# sacctmgr: view your account info and permissions
 sacctmgr show associations user=YOUR_NETID
 
-# Job history
+# sacct: view job history from a specific date
 sacct -u YOUR_NETID --starttime=2024-01-01
 ```
 
