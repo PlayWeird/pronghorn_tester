@@ -1,0 +1,65 @@
+# Logs and output files
+logs/
+*.log
+*.out
+*.err
+slurm-*.out
+
+# Data files (can be large)
+data/output/*
+data/input/*
+!data/input/.gitkeep
+!data/output/.gitkeep
+
+# Container images
+*.sif
+*.simg
+
+# Environment and secrets
+.env
+.env.*
+*.pem
+*.key
+
+# SSH keys (keep config only)
+.ssh/id_*
+.ssh/known_hosts
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+env/
+venv/
+ENV/
+.venv
+pip-log.txt
+pip-delete-this-directory.txt
+
+# OS files
+.DS_Store
+Thumbs.db
+*.swp
+*~
+
+# Temporary files
+tmp/
+temp/
+*.tmp
+*.bak
+
+# Large binary files
+*.tar.gz
+*.zip
+*.tar
+*.gz
+
+# Job-specific output
+job_output/
+scratch/
+
+# Keep directory structure
+!*/
+!.gitkeep
