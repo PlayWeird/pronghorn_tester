@@ -359,7 +359,7 @@ sacct -u YOUR_NETID --starttime=2024-01-01
 - **Wiki**: https://github.com/UNR-HPC/pronghorn/wiki
 - **Email**: hpc@unr.edu
 - **Slack**: https://unrrc.slack.com
-- **Hackathons**: Weekly sessions - https://www.unr.edu/research-computing/calendar
+- **Research Computing**: https://www.unr.edu/research-computing
 
 ## Next Steps
 

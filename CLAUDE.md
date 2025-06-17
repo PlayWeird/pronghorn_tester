@@ -39,7 +39,6 @@ This repository is designed for testing connections and capabilities of Pronghor
 - **Website**: https://www.unr.edu/research-computing
 - **Slack**: https://unrrc.slack.com
 - **Email**: hpc@unr.edu
-- **Hackathons**: https://www.unr.edu/research-computing/calendar
 
 ## Development Guidelines
 
