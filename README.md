@@ -11,24 +11,44 @@ A comprehensive testing framework for the Pronghorn High-Performance Computing c
 
 ## Quick Start
 
+### First-time Setup
+Before using this repository, you need to customize it for your account:
+
 1. **Clone this repository**:
    ```bash
    git clone <repository-url>
    cd pronghorn_tester
    ```
 
-2. **Set up permissions**:
+2. **Update configuration files with your NetID**:
+   ```bash
+   # Edit .ssh/config file
+   sed -i 's/gevangelista/YOUR_NETID/g' .ssh/config
+   
+   # Update scripts (replace YOUR_NETID with your actual NetID)
+   find scripts/ -name "*.sh" -exec sed -i 's/gevangelista/YOUR_NETID/g' {} \;
+   ```
+
+3. **Set up permissions**:
    ```bash
    make setup
    ```
 
-3. **Test your connection**:
+4. **Check your account associations** (on Pronghorn):
+   ```bash
+   ssh YOUR_NETID@pronghorn.rc.unr.edu
+   sacctmgr show associations user=YOUR_NETID format=account,partition,qos
+   ```
+
+### Testing Your Setup
+
+1. **Test your connection**:
    ```bash
    make test-connection
    # or directly: bash scripts/connection/test_ssh.sh
    ```
 
-4. **Check your storage quota**:
+2. **Check your storage quota**:
    ```bash
    make check-quota
    # or directly: bash scripts/utilities/quota_check.sh
@@ -39,54 +59,71 @@ A comprehensive testing framework for the Pronghorn High-Performance Computing c
 ```
 pronghorn_tester/
 ├── scripts/                 # Utility scripts
-│   ├── connection/         # Connection testing (test_ssh.sh, vpn_check.sh)
-│   ├── utilities/          # Helper scripts (quota_check.sh, module_list.sh)
-│   └── setup/              # Setup scripts (setup_env.sh, install_deps.sh)
+│   ├── connection/         # Connection testing
+│   │   ├── test_ssh.sh     # SSH connectivity test
+│   │   └── interactive_connect.sh  # Interactive connection helper
+│   ├── utilities/          # Helper scripts
+│   │   ├── quota_check.sh  # Storage quota checker
+│   │   └── check_gpu_access.sh  # GPU availability checker
+│   └── setup/              # Setup scripts
+│       └── first_time_check.sh  # Environment validation
 ├── jobs/                    # SLURM job scripts
-│   ├── cpu/                # CPU job templates (simple_cpu.sh, mpi_job.sh)
-│   ├── gpu/                # GPU job templates (gpu_test.sh)
-│   ├── array/              # Array job templates (array_job.sh)
-│   └── test/               # Quick test jobs (quick_test.sh - 15 min limit)
+│   ├── cpu/                # CPU job templates
+│   │   └── simple_cpu.sh   # Basic CPU job template
+│   ├── gpu/                # GPU job templates (for future use)
+│   ├── array/              # Array job templates (for future use)
+│   └── test/               # Quick test jobs
+│       └── quick_test.sh   # 15-minute test job
 ├── containers/              # Singularity containers
-│   ├── definitions/        # Container definitions (python.def, ml_env.def)
-│   └── scripts/            # Container management (build.sh, run.sh)
-├── benchmarks/              # Performance tests
-│   ├── cpu/                # CPU benchmarks (cpu_bench.py)
-│   ├── gpu/                # GPU benchmarks (gpu_bench.py)
-│   └── io/                 # I/O benchmarks (io_bench.py)
+│   ├── definitions/        # Container definitions
+│   │   └── python.def      # Python container definition
+│   └── scripts/            # Container management (for future use)
+├── benchmarks/              # Performance tests (for future use)
+│   ├── cpu/                # CPU benchmarks
+│   ├── gpu/                # GPU benchmarks  
+│   └── io/                 # I/O benchmarks
 ├── data/                    # Data directories
 │   ├── input/              # Input files for jobs
 │   └── output/             # Job output files
-├── logs/                    # Log files
-│   ├── slurm/              # SLURM output/error files
-│   └── application/        # Application-specific logs
-├── config/                  # Configuration files
-├── docs/                    # Additional documentation
-└── .ssh/                    # SSH configuration
+├── logs/                    # Log files (created during job execution)
+├── config/                  # Configuration files (for future use)
+├── docs/                    # Additional documentation (for future use)
+├── .ssh/                    # SSH configuration
+│   └── config              # SSH client configuration template
+├── Makefile                # Automation commands
+├── CLAUDE.md               # AI assistant guidance
+└── README.md               # This file
 ```
 
 ## Connecting to Pronghorn
 
 ### Manual Connection
 ```bash
-# Connect from on-campus
-ssh gevangelista@pronghorn.rc.unr.edu
+# Connect from on-campus (replace YOUR_NETID with your actual NetID)
+ssh YOUR_NETID@pronghorn.rc.unr.edu
 
 # Connect from off-campus (VPN required)
 # 1. First connect to UNR VPN
 # 2. Then SSH to Pronghorn
-ssh gevangelista@pronghorn.rc.unr.edu
+ssh YOUR_NETID@pronghorn.rc.unr.edu
 ```
 
 ### Using SSH Config (Recommended)
+First, update the `.ssh/config` file with your NetID, then:
 ```bash
-# With the provided .ssh/config, you can simply use:
+# With the provided .ssh/config (after updating with your NetID), you can simply use:
 ssh pronghorn
 ```
 
 ## Running Jobs on Pronghorn
 
 ⚠️ **CRITICAL**: Always specify account and partition explicitly on the command line. Using only `#SBATCH` directives in scripts will fail.
+
+⚠️ **ACCOUNT SETUP**: The examples below use `cpu-s6-test-0` and `cpu-s3-sponsored-0` partitions. Check your actual account associations with:
+```bash
+sacctmgr show associations user=YOUR_NETID format=account,partition,qos
+```
+Replace the account/partition names in examples with your actual available accounts.
 
 ### 1. Quick Test Job (15-minute limit) - TESTED ✅
 Perfect for testing your setup and debugging:
@@ -97,14 +134,14 @@ sbatch --account=cpu-s6-test-0 --partition=cpu-s6-test-0 jobs/test/quick_test.sh
 # WRONG: This will fail with "Invalid account or account/partition combination"
 sbatch jobs/test/quick_test.sh
 
-# Check job status
-squeue -u gevangelista
+# Check job status (replace YOUR_NETID with your NetID)
+squeue -u YOUR_NETID
 
 # Find output files (they may be in submission directory)
 find ~ -name "*JOBID*" -type f 2>/dev/null
 ls -la slurm-*.out
 
-# View output
+# View output (replace JOBID with actual job number)
 cat slurm-JOBID.out
 ```
 
@@ -115,7 +152,7 @@ For regular computational work (up to 8 hours):
 sbatch --account=cpu-s3-sponsored-0 --partition=cpu-s3-sponsored-0 jobs/cpu/simple_cpu.sh
 
 # Monitor job
-squeue -u gevangelista
+squeue -u YOUR_NETID
 
 # Cancel if needed
 scancel JOBID
@@ -171,12 +208,12 @@ singularity exec python_3.9-slim.sif python my_script.py
 # Using the utility script
 make check-quota
 
-# Or directly on Pronghorn
-mmlsquota -j home.gevangelista --block-size 1G pronghorn-0
+# Or directly on Pronghorn (replace YOUR_NETID)
+mmlsquota -j home.YOUR_NETID --block-size 1G pronghorn-0
 ```
 
 ### Important Paths
-- **Home Directory**: `/data/gpfs/home/gevangelista` (50GB limit, not backed up)
+- **Home Directory**: `/data/gpfs/home/YOUR_NETID` (50GB limit, not backed up)
 - **Applications**: `/apps` (system-wide software)
 - **Scratch Space**: Check with your research group
 
@@ -204,18 +241,18 @@ cp mydata.csv data/input/
 vim jobs/cpu/simple_cpu.sh
 # Update to run your Python script
 
-# 3. Submit the job
-sbatch jobs/cpu/simple_cpu.sh
+# 3. Submit the job (remember explicit account/partition)
+sbatch --account=cpu-s3-sponsored-0 --partition=cpu-s3-sponsored-0 jobs/cpu/simple_cpu.sh
 
-# 4. Check results
+# 4. Check results (output files will be in submission directory)
 ls data/output/
-cat logs/slurm/cpu_*.out
+find ~ -name "slurm-*.out" | tail -5
 ```
 
 ### 3. Batch Processing with Array Jobs
 ```bash
-# For processing multiple files/parameters
-sbatch jobs/array/array_job.sh
+# Array job templates are available in jobs/array/ for future development
+# Create your own array job script based on SLURM array job documentation
 ```
 
 ## Available Commands (Makefile)
@@ -232,26 +269,26 @@ make clean            # Clean output and log files
 ## SLURM Cheat Sheet
 
 ```bash
-# Submit job
-sbatch script.sh
+# Submit job (remember to use explicit account/partition flags)
+sbatch --account=ACCOUNT --partition=PARTITION script.sh
 
 # Check queue
-squeue -u gevangelista
+squeue -u YOUR_NETID
 
 # Check all your jobs
-squeue -u gevangelista -t all
+squeue -u YOUR_NETID -t all
 
 # Cancel job
 scancel JOBID
 
 # Cancel all your jobs
-scancel -u gevangelista
+scancel -u YOUR_NETID
 
 # View account info
-sacctmgr show associations user=gevangelista
+sacctmgr show associations user=YOUR_NETID
 
 # Job history
-sacct -u gevangelista --starttime=2024-01-01
+sacct -u YOUR_NETID --starttime=2024-01-01
 ```
 
 ## Troubleshooting
@@ -308,7 +345,11 @@ sacct -u gevangelista --starttime=2024-01-01
 
 ## Next Steps
 
-1. Run `make test-connection` to verify access
-2. Submit a test job with `sbatch jobs/test/quick_test.sh`
-3. Explore the example scripts and modify for your needs
-4. Join the Slack channel for community support
+1. **Customize for your account**: Update NetID in configuration files as described in Quick Start
+2. **Verify access**: Run `make test-connection` to test SSH connectivity
+3. **Check your accounts**: Run `sacctmgr show associations user=YOUR_NETID format=account,partition,qos` on Pronghorn
+4. **Submit test job**: Use your actual account/partition: `sbatch --account=YOUR_ACCOUNT --partition=YOUR_PARTITION jobs/test/quick_test.sh`
+5. **Explore and customize**: Modify the example scripts for your specific computational needs
+6. **Get support**: Join the Slack channel for community support and questions
+
+Remember to always use explicit `--account` and `--partition` flags when submitting jobs!
