@@ -22,11 +22,14 @@ Before using this repository, you need to customize it for your account:
 
 2. **Update configuration files with your NetID**:
    ```bash
-   # Edit .ssh/config file
-   sed -i 's/gevangelista/YOUR_NETID/g' .ssh/config
+   # Replace YOUR_NETID with your actual NetID throughout the repository
+   # For example, if your NetID is "jsmith":
+   sed -i 's/YOUR_NETID/jsmith/g' .ssh/config
+   find scripts/ -name "*.sh" -exec sed -i 's/YOUR_NETID/jsmith/g' {} \;
+   find containers/ -name "*.def" -exec sed -i 's/YOUR_NETID/jsmith/g' {} \;
    
-   # Update scripts (replace YOUR_NETID with your actual NetID)
-   find scripts/ -name "*.sh" -exec sed -i 's/gevangelista/YOUR_NETID/g' {} \;
+   # Alternative: Set environment variable and scripts will use it automatically
+   export USER=jsmith
    ```
 
 3. **Set up permissions**:

@@ -10,14 +10,14 @@ This repository is designed for testing connections and capabilities of Pronghor
 
 ### Connection Details
 - **Host**: `pronghorn.rc.unr.edu`
-- **SSH Command**: `ssh gevangelista@pronghorn.rc.unr.edu`
+- **SSH Command**: `ssh YOUR_NETID@pronghorn.rc.unr.edu`
 - **VPN Required**: Must connect to campus VPN for off-campus access
 - **Documentation**: https://github.com/UNR-HPC/pronghorn/wiki/1.0-Connecting-to-Pronghorn
 
 ### User Directories and Storage
-- **Home Directory**: `/data/gpfs/home/gevangelista`
+- **Home Directory**: `/data/gpfs/home/YOUR_NETID`
 - **Storage Quota**: 50GB (not backed up)
-- **Check Usage**: `mmlsquota -j home.gevangelista --block-size 1G pronghorn-0`
+- **Check Usage**: `mmlsquota -j home.YOUR_NETID --block-size 1G pronghorn-0`
 
 ### Job Scheduler - SLURM
 - **Default Account/Partition**: `cpu-s3-sponsored-0/cpu-s3-sponsored-0`
@@ -80,7 +80,7 @@ sbatch --account=cpu-s3-sponsored-0 --partition=cpu-s3-sponsored-0 script.sh
 sbatch --account=cpu-s6-test-0 --partition=cpu-s6-test-0 script.sh
 
 # Check job status
-squeue -u gevangelista
+squeue -u YOUR_NETID
 
 # Check job history and details
 sacct -j <job_id> --format=JobID,JobName,State,ExitCode,Submit,Start,End
@@ -99,10 +99,10 @@ find ~ -name "*<job_id>*" -type f 2>/dev/null
 ### Storage Management
 ```bash
 # Check quota
-mmlsquota -j home.gevangelista --block-size 1G pronghorn-0
+mmlsquota -j home.YOUR_NETID --block-size 1G pronghorn-0
 
 # Check disk usage
-du -sh /data/gpfs/home/gevangelista
+du -sh /data/gpfs/home/YOUR_NETID
 ```
 
 ### Container Management (TESTED)
@@ -120,7 +120,7 @@ singularity exec python_3.9-slim.sif python script.py
 ### Account Management
 ```bash
 # Check your account associations (full names)
-sacctmgr list associations user=gevangelista format=account%20,partition%20 --parsable2
+sacctmgr list associations user=YOUR_NETID format=account%20,partition%20 --parsable2
 
 # Check available partitions
 scontrol show partition | grep -A5 "PartitionName=cpu"

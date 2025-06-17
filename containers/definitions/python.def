@@ -2,7 +2,7 @@ Bootstrap: docker
 From: python:3.9-slim
 
 %labels
-    Author gevangelista
+    Author YOUR_NETID
     Version v1.0
     Description Python 3.9 container for Pronghorn HPC
 

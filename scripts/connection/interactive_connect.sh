@@ -27,8 +27,19 @@ echo ""
 echo "Attempting to connect to Pronghorn..."
 echo "You may be prompted for your NetID password."
 echo ""
-echo "Command: ssh gevangelista@pronghorn.rc.unr.edu"
+echo "Command: ssh YOUR_NETID@pronghorn.rc.unr.edu"
 echo "-----------------------------------"
+echo "Note: Replace YOUR_NETID with your actual NetID"
+echo ""
+
+# Get username from environment or use default
+USERNAME=${USER:-"YOUR_NETID"}
+
+if [ "$USERNAME" = "YOUR_NETID" ]; then
+    echo "Please set your NetID: export USER=your_netid"
+    echo "Or run: ssh your_netid@pronghorn.rc.unr.edu"
+    exit 1
+fi
 
 # Connect with SSH
-ssh gevangelista@pronghorn.rc.unr.edu
+ssh ${USERNAME}@pronghorn.rc.unr.edu
