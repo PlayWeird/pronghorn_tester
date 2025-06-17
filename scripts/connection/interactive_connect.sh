@@ -32,12 +32,17 @@ echo "-----------------------------------"
 echo "Note: Replace YOUR_NETID with your actual NetID"
 echo ""
 
-# Get username from environment or use default
-USERNAME=${USER:-"YOUR_NETID"}
+# Get username from environment or prompt user
+USERNAME=${PRONGHORN_USER:-""}
 
-if [ "$USERNAME" = "YOUR_NETID" ]; then
-    echo "Please set your NetID: export USER=your_netid"
-    echo "Or run: ssh your_netid@pronghorn.rc.unr.edu"
+if [ -z "$USERNAME" ]; then
+    echo "❌ NetID not configured!"
+    echo ""
+    echo "Please set your NetID using one of these methods:"
+    echo "  1. Set environment variable: export PRONGHORN_USER=your_netid"
+    echo "  2. Replace placeholder in files: sed -i 's/YOUR_NETID/your_netid/g' scripts/connection/interactive_connect.sh"
+    echo ""
+    echo "Then run this script again."
     exit 1
 fi
 

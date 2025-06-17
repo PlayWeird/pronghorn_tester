@@ -29,7 +29,7 @@ Before using this repository, you need to customize it for your account:
    find containers/ -name "*.def" -exec sed -i 's/YOUR_NETID/jsmith/g' {} \;
    
    # Alternative: Set environment variable and scripts will use it automatically
-   export USER=jsmith
+   export PRONGHORN_USER=jsmith
    ```
 
 3. **Set up permissions**:

@@ -9,6 +9,8 @@ help:
 	@echo "  make setup           - Initial setup and permissions"
 	@echo "  make permissions     - Fix script permissions"
 	@echo "  make clean           - Clean output and log files"
+	@echo ""
+	@echo "Note: Set your NetID with: export PRONGHORN_USER=your_netid"
 
 test-connection:
 	@bash scripts/connection/test_ssh.sh
